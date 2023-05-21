@@ -1,11 +1,12 @@
 // PACKAGE IMPORTS
 import bcrypt from 'bcrypt';
+import { v4 as uuid } from 'uuid';
 
 // VALUE IMPORTS
 import db from '../database/database.connection.js';
 
 // VALUE EXPORTS
-export default async function signUp(req, res) {
+export async function signUp(req, res) {
   const {
     name,
     email,
@@ -29,6 +30,38 @@ export default async function signUp(req, res) {
       INSERT INTO users (name, email, password, createdAt) VALUES ($1, $2, $3, $4);
     `, [name, email, hash, new Date().toISOString()]);
     return res.sendStatus(201);
+  } catch (error) {
+    return res.status(500).send(error.message);
+  }
+}
+
+export async function signIn(req, res) {
+  const {
+    email,
+    password,
+  } = req.body;
+
+  try {
+    const users = await db.query(`
+    SELECT email FROM users;
+  `);
+    if (!users.rows.find((user) => (user.email === email))) {
+      return res.status(404).send('This e-mail address is not registered!');
+    }
+
+    const user = await db.query(`
+    SELECT id, password FROM users WHERE email = $1;
+  `, [email]);
+
+    const correctPassword = bcrypt.compareSync(password, user.rows[0].password);
+    if (!correctPassword) return res.status(401).send('Password is incorrect! Please try again.');
+
+    const token = uuid();
+
+    await db.query(`
+      INSERT INTO sessions (userId, token) VALUES ($1, $2);
+    `, [user.rows[0].id, token]);
+    return res.status(200).send({ token });
   } catch (error) {
     return res.status(500).send(error.message);
   }
