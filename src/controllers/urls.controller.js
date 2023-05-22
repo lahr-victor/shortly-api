@@ -57,3 +57,28 @@ export async function redirectUrl(req, res) {
     return res.status(500).send(error.message);
   }
 }
+
+export async function removeUrlById(req, res) {
+  const { session } = res.locals;
+
+  const id = parseInt(req.params.id, 10);
+  if (Number.isNaN(id)) return res.sendStatus(400);
+
+  try {
+    const url = await db.query(`
+      SELECT "userId" FROM urls WHERE id = $1;
+    `, [id]);
+
+    if (!url.rows[0]) return res.sendStatus(404);
+
+    if (session.userId !== url.rows[0].userId) return res.sendStatus(401);
+
+    await db.query(`
+      DELETE FROM urls WHERE id = $1;
+    `, [id]);
+
+    return res.sendStatus(204);
+  } catch (error) {
+    return res.status(500).send(error.message);
+  }
+}
