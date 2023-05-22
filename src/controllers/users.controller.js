@@ -46,7 +46,7 @@ export async function signIn(req, res) {
     SELECT email FROM users;
   `);
     if (!users.rows.find((user) => (user.email === email))) {
-      return res.status(404).send('This e-mail address is not registered!');
+      return res.status(401).send('This e-mail address is not registered!');
     }
 
     const user = await db.query(`
