@@ -66,3 +66,24 @@ export async function signIn(req, res) {
     return res.status(500).send(error.message);
   }
 }
+
+export async function retrieveUserById(req, res) {
+  const { session } = res.locals;
+
+  try {
+    const user = await db.query(`
+      SELECT users.id, users.name, SUM(urls."visitCount") AS "visitCount" FROM users
+        JOIN urls ON users.id = urls."userId" WHERE users.id = $1 GROUP BY users.id;
+    `, [session.userId]);
+
+    const shortenedUrls = await db.query(`
+      SELECT id, "shortUrl", url, "visitCount" FROM urls WHERE "userId" = $1 ORDER BY id;
+    `, [session.userId]);
+
+    if (!user.rows[0] || !shortenedUrls.rows[0]) return res.sendStatus(404);
+
+    return res.status(200).send({ ...user.rows[0], shortenedUrls: shortenedUrls.rows });
+  } catch (error) {
+    return res.status(500).send(error.message);
+  }
+}
