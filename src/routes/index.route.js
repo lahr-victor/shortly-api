@@ -2,6 +2,7 @@
 import { Router } from 'express';
 
 // VALUE IMPORTS
+import rankingsRouter from './rankings.route.js';
 import urlsRouter from './urls.route.js';
 import usersRouter from './users.route.js';
 
@@ -9,6 +10,7 @@ import usersRouter from './users.route.js';
 const router = Router();
 
 // ROUTES CONFIG
+router.use(rankingsRouter);
 router.use(urlsRouter);
 router.use(usersRouter);
 
