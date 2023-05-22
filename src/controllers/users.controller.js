@@ -1,5 +1,6 @@
 // PACKAGE IMPORTS
 import bcrypt from 'bcrypt';
+import { nanoid } from 'nanoid';
 import { v4 as uuid } from 'uuid';
 
 // VALUE IMPORTS
@@ -62,6 +63,22 @@ export async function signIn(req, res) {
       INSERT INTO sessions (userId, token) VALUES ($1, $2);
     `, [user.rows[0].id, token]);
     return res.status(200).send({ token });
+  } catch (error) {
+    return res.status(500).send(error.message);
+  }
+}
+
+export async function shortenUrl(req, res) {
+  const { session } = res.locals;
+  const { url } = req.body;
+
+  try {
+    const shortenedUrl = nanoid(8);
+
+    const result = await db.query(`
+      INSERT INTO urls ("userId", url, "shortUrl") VALUES ($1, $2, $3) RETURNING id;
+    `, [session.userId, url, shortenedUrl]);
+    return res.status(201).send({ id: result.rows[0].id, shortUrl: shortenedUrl });
   } catch (error) {
     return res.status(500).send(error.message);
   }

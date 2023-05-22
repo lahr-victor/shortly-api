@@ -13,3 +13,7 @@ export const signInSchema = joi.object({
   email: joi.string().email().required(),
   password: joi.string().min(3).required(),
 });
+
+export const urlSchema = joi.object({
+  url: joi.string().uri(),
+});
