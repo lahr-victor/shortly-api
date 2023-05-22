@@ -23,7 +23,7 @@ export async function shortenUrl(req, res) {
 
 export async function retrieveUrlById(req, res) {
   const id = parseInt(req.params.id, 10);
-  if (id.isNaN) return res.sendStatus(400);
+  if (Number.isNaN(id)) return res.sendStatus(400);
 
   try {
     const url = await db.query(`
